@@ -30,6 +30,7 @@ public class SFPSC_PlayerMovement : MonoBehaviour
     private bool enableMovement = true;
 
     [Header("Movement properties")]
+    public int movementMode = 0; //0 walk, 1 ship control
     public float walkSpeed = 8.0f;
     public float runSpeed = 12.0f;
     public float changeInStageSpeed = 10.0f; // Lerp from walk to run and backwards speed
@@ -45,6 +46,8 @@ public class SFPSC_PlayerMovement : MonoBehaviour
 
     private SFPSC_WallRun wallRun;
     private SFPSC_GrapplingHook grapplingHook;
+
+    private GameObject ControlledShip;
 
     private void Start()
     {
@@ -90,25 +93,32 @@ public class SFPSC_PlayerMovement : MonoBehaviour
         // Clamping speed
         rb.velocity = ClampMag(rb.velocity, maximumPlayerSpeed);
 
-        if (!enableMovement)
-            return;
-        inputForce = (transform.forward * vInput + transform.right * hInput).normalized * (Input.GetKey(SFPSC_KeyManager.Run) ? runSpeed : walkSpeed);
+        if (enableMovement) { 
+            //Ground Movment
+            inputForce = (transform.forward * vInput + transform.right * hInput).normalized * (Input.GetKey(SFPSC_KeyManager.Run) ? runSpeed : walkSpeed);
 
-        if (isGrounded)
-        {
-            // Jump
-            if (Input.GetButton("Jump") && !jumpBlocked)
+            if (isGrounded)
             {
-                rb.AddForce(-jumpForce * rb.mass * Vector3.down);
-                jumpBlocked = true;
-                Invoke("UnblockJump", jumpCooldown);
+                // Jump
+                if (Input.GetButton("Jump") && !jumpBlocked)
+                {
+                    rb.AddForce(-jumpForce * rb.mass * Vector3.down);
+                    jumpBlocked = true;
+                    Invoke("UnblockJump", jumpCooldown);
+                }
+                // Ground controller
+                rb.velocity = Vector3.Lerp(rb.velocity, inputForce, changeInStageSpeed * Time.fixedDeltaTime);
             }
-            // Ground controller
-            rb.velocity = Vector3.Lerp(rb.velocity, inputForce, changeInStageSpeed * Time.fixedDeltaTime);
+            else
+                // Air control
+                rb.velocity = ClampSqrMag(rb.velocity + inputForce * Time.fixedDeltaTime, rb.velocity.sqrMagnitude);
         }
-        else
-            // Air control
-            rb.velocity = ClampSqrMag(rb.velocity + inputForce * Time.fixedDeltaTime, rb.velocity.sqrMagnitude);
+
+        if (movementMode == 1 && !enableMovement)
+        {
+            //Ship Mode
+
+        }
     }
 
     private static Vector3 ClampSqrMag(Vector3 vec, float sqrMag)
@@ -162,5 +172,32 @@ public class SFPSC_PlayerMovement : MonoBehaviour
     public void DisableMovement()
     {
         enableMovement = false;
+    }
+
+    public void ChangeMovementMode(int mode)
+    {
+        movementMode = mode;
+        switch (mode)
+        {
+            case 0:
+                //Walking
+                EnableMovement();
+                break;
+            case 1:
+                //Ship Control
+                DisableMovement();
+                break;
+        }
+        
+    }
+
+    public void AssignShip(GameObject ship)
+    {
+        ControlledShip = ship;
+    }
+
+    public void RemoveShip()
+    {
+        ControlledShip = null;
     }
 }
