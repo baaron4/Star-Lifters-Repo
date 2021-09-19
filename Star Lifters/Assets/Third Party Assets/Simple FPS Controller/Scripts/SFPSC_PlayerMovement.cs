@@ -47,7 +47,17 @@ public class SFPSC_PlayerMovement : MonoBehaviour
     private SFPSC_WallRun wallRun;
     private SFPSC_GrapplingHook grapplingHook;
 
+    [Header("Ship properties")]
+    public GameObject onboardShip;
+    private ShipMovement shipMovement;
+    public float artificialGravity;
     private GameObject ControlledShip;
+    public GameObject playerCamera;
+    public float mouseX, mouseY;
+    private float sensitivity;
+    public float mousemoveX, mousemoveY;
+
+
 
     private void Start()
     {
@@ -55,6 +65,11 @@ public class SFPSC_PlayerMovement : MonoBehaviour
 
         TryGetWallRun();
         TryGetGrapplingHook();
+
+        if (onboardShip != null)
+            BoardShip(onboardShip);
+
+        sensitivity = playerCamera.GetComponent<SFPSC_FPSCamera>().sensitivity;
     }
 
     public void TryGetWallRun()
@@ -102,7 +117,7 @@ public class SFPSC_PlayerMovement : MonoBehaviour
                 // Jump
                 if (Input.GetButton("Jump") && !jumpBlocked)
                 {
-                    rb.AddForce(-jumpForce * rb.mass * Vector3.down);
+                    rb.AddForce(-jumpForce * rb.mass * -this.transform.up);
                     jumpBlocked = true;
                     Invoke("UnblockJump", jumpCooldown);
                 }
@@ -110,14 +125,47 @@ public class SFPSC_PlayerMovement : MonoBehaviour
                 rb.velocity = Vector3.Lerp(rb.velocity, inputForce, changeInStageSpeed * Time.fixedDeltaTime);
             }
             else
-                // Air control
-                rb.velocity = ClampSqrMag(rb.velocity + inputForce * Time.fixedDeltaTime, rb.velocity.sqrMagnitude);
+            {
+                //Ship Gravity with air control
+                Vector3 movmentVector = ClampSqrMag(rb.velocity + inputForce * Time.fixedDeltaTime, rb.velocity.sqrMagnitude) + (artificialGravity * Time.fixedDeltaTime* onboardShip.transform.up) ;
+                rb.velocity = movmentVector;
+            }
         }
 
         if (movementMode == 1 && !enableMovement)
         {
             //Ship Mode
+            shipMovement.adjustAccel(vInput);
 
+            // Mouse input
+            mouseX = Input.GetAxis("Mouse X") * sensitivity;
+            mouseY = Input.GetAxis("Mouse Y") * sensitivity;
+
+            //steer
+            float rotX = 0;
+            float rotY = 0;
+            float rotZ = 0;
+            if (Input.GetButtonDown("Jump") )
+            {
+                mousemoveX = 0;
+                mousemoveY = 0;
+            }
+            if (Input.GetButton("Jump"))
+            {
+                mousemoveX += mouseX;
+                mousemoveY += mouseY;
+
+                rotY = mousemoveX;
+                rotX = mousemoveY;
+            }
+            else
+            {
+                mousemoveX = 0;
+                mousemoveY = 0;
+            }
+            
+            rotZ = hInput;
+            shipMovement.adjustRotation(Quaternion.Euler(rotX, rotY, rotZ));
         }
     }
 
@@ -191,13 +239,29 @@ public class SFPSC_PlayerMovement : MonoBehaviour
         
     }
 
+    public void BoardShip(GameObject ship)
+    {
+        onboardShip = ship;
+        artificialGravity = ship.GetComponent<Ship_Controller>().artificialGravity;
+        this.transform.SetParent(ship.transform);
+        playerCamera.transform.SetParent(ship.transform);
+    }
+
+    public void LeaveShip(GameObject ship)
+    {
+        onboardShip = null;
+        artificialGravity = 0f;
+    }
+
     public void AssignShip(GameObject ship)
     {
         ControlledShip = ship;
+        shipMovement = ship.GetComponent<Ship_Controller>().shipExterior.GetComponent<ShipMovement>();
     }
 
     public void RemoveShip()
     {
         ControlledShip = null;
+        shipMovement = null;
     }
 }

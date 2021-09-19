@@ -19,6 +19,8 @@ public class SFPSC_Rope : MonoBehaviour
     private void Start()
     {
         lineRenderer = this.GetComponent<LineRenderer>();
+        //Enable Line Renderer world space so that it can be moved in local
+        lineRenderer.useWorldSpace = true;
     }
 
     private Vector3 _start;

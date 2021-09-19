@@ -15,6 +15,11 @@ public class Ship_Controls : MonoBehaviour
        intScript =  this.GetComponentInChildren<Interactable>();
     }
 
+    private void FixedUpdate()
+    {
+        if(inUse)
+            player.transform.position = drivePosition.position;
+    }
     private void OnMouseEnter()
     {
         intScript.isFocused = true;

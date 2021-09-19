@@ -29,6 +29,7 @@ public class SFPSC_GrapplingHook : MonoBehaviour
         segments = rope.segments;
         pm = this.GetComponent<SFPSC_PlayerMovement>();
         rb = this.GetComponent<Rigidbody>();
+
     }
 
     private bool isGrappling = false;

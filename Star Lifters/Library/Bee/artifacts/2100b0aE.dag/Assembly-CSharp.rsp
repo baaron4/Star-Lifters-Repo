@@ -321,6 +321,7 @@
 -r:"Library/Bee/artifacts/2100b0aE.dag/VSSettingsProvider.ref.dll"
 "Assets/Interactable.cs"
 "Assets/ShipMovement.cs"
+"Assets/Ship_Controller.cs"
 "Assets/Ship_Controls.cs"
 "Assets/Third Party Assets/Simple FPS Controller/Scripts/Grappling Hook/SFPSC_GrapplingHook.cs"
 "Assets/Third Party Assets/Simple FPS Controller/Scripts/Grappling Hook/SFPSC_Rope.cs"

@@ -63,11 +63,13 @@ public class SFPSC_FPSCamera : MonoBehaviour
         rotX -= mouseY;
         rotX = Mathf.Clamp(rotX, maxDownAngle, maxUpAngle);
         rotY += mouseX;
+       
 
         // Placing values
         transform.localRotation = Quaternion.Euler(rotX, rotY, rotZ);
         player.Rotate(Vector3.up * mouseX);
         transform.position = CameraPosition.position;
+        
     }
 
     public void Shake(float magnitude, float duration)
